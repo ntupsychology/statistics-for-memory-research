@@ -1,0 +1,54 @@
+---
+title: "Statistics for Memory Researchers"
+author: "Lucy V. Justice and Mark Andrews"
+date: "9 August 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Abstract
+
+Experimental studies investigating memory are diverse, and as a result so too are their resulting data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selection an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools limits the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality of conclusions drawn from memory research.
+
+
+# Introduction
+
+some text here
+
+**Note: all case studies will include code for visualisation, discuss interpretation of results and provide a sample write up**
+
+## Case Study 1: Linear Mixed Effects Models
+*response latency data from retreival paper*
+
+* Description of multilevel data
+* Modeling using lme4  
+
+
+## Case Study 2: Analysis of Ordinal Data
+*Recollective measures from retrieval paper* 
+
+* Definition of ordinal i.e. when can ordinal be treated as cont.
+* Ordinal logistic regression with continous and categorical preds.
+* Adding multilevel terms
+
+
+## Case Study 3: Non-linear regression
+*Mark to provide serial position effect data*
+
+* Intro to Bayes
+* Modeling usng stan_glmer
+
+
+## Case Study 4: Mixture Models
+*Q'airre respondents from PhD beliefs*
+*Martin to provide multicultural reminiscence bump data*
+
+* PCA for quick visualisation?
+* Finding hidden groups with latent profile / class analysis 
+
+
+## Case Study 5: longditudinal analysis **or** power and effect size?
+
