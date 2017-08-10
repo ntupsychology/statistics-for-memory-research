@@ -33,7 +33,7 @@ some text here
 *Recollective measures from retrieval paper* 
 
 * Definition of ordinal i.e. when can ordinal be treated as cont.
-* Ordinal logistic regression with continous and categorical preds.
+* Ordinal logistic regression with continuous and categorical preds.
 * Adding multilevel terms
 
 
@@ -41,7 +41,7 @@ some text here
 *Mark to provide serial position effect data*
 
 * Intro to Bayes
-* Modeling usng stan_glmer
+* Modeling using stan_glmer
 
 
 ## Case Study 4: Mixture Models
@@ -51,5 +51,5 @@ some text here
 * Finding hidden groups with latent profile / class analysis 
 * Dirichlet process mixture models
 
-## Case Study 5: longditudinal analysis **or** power and effect size?
+## Case Study 5: longitudinal analysis **or** power and effect size?
 
