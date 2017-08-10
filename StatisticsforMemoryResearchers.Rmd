@@ -1,5 +1,5 @@
 ---
-title: "Statistics for Memory Researchers"
+title: "Statistics for Memory Research"
 author: "Lucy V. Justice and Mark Andrews"
 date: "9 August 2017"
 output: pdf_document
@@ -17,6 +17,8 @@ Experimental studies investigating memory are diverse, and as a result so too ar
 # Introduction
 
 some text here
+
+# Case Studies
 
 **Note: all case studies will include code for visualisation, discuss interpretation of results and provide a sample write up**
 
@@ -46,9 +48,8 @@ some text here
 *Q'airre respondents from PhD beliefs*
 *Martin to provide multicultural reminiscence bump data*
 
-* PCA for quick visualisation?
 * Finding hidden groups with latent profile / class analysis 
-
+* Dirichlet process mixture models
 
 ## Case Study 5: longditudinal analysis **or** power and effect size?
 
