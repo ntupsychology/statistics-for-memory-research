@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Abstract
 
-Experimental studies investigating memory are diverse, and as a result so too are their resulting data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selection an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools limits the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality of conclusions drawn from memory research.
+Experimental studies investigating memory are diverse, and as a result so too are their resulting data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selecting an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools limits the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
 
 
 # Introduction
@@ -20,13 +20,112 @@ some text here
 
 # Case Studies
 
-**Note: all case studies will include code for visualisation, discuss interpretation of results and provide a sample write up**
-
 ## Case Study 1: Linear Mixed Effects Models
-*response latency data from retreival paper*
+Linear mixed effects models (also known as multilevel models, mixed models, hierarchical models) are used as standard across many areas of psychology (REF), and although they are increasingly appearing throughout memory research, they remain an underused tool. This case study will demonstrate when linear mixed effects models can be utilised, how they are implemented and how their results can be visualised and written.
 
-* Description of multilevel data
-* Modeling using lme4  
+```{r Case Study 1 Admin Code, message=FALSE, warning=FALSE, include=FALSE}
+library(dplyr)
+library(pander)
+library(yarrr)
+library(lsmeans)
+library(lme4)
+library(sjPlot)
+library(e1071)
+
+Df <- read.csv("C:/Users/PSY3JUSTIL/GitHub/statistics-for-memory-research/CaseStudy1&2.csv")
+Df1 <- dplyr::select(Df, Subject, Retrieval_Type, Retrieval_Type_RT, Word_Presented, Cue_Type)
+Df1$Retrieval_Type <- factor(Df1$Retrieval_Type, levels = c("Direct", "Generative", "DK"))
+Df1$Subject <- factor(Df1$Subject)
+```
+
+```{r Display Data, echo=F}
+pander(head(Df1))
+```
+*change subject to ptp*
+
+In an experiment (reported in Justice & Conway, ????), a total of 36 participants were asked to recall 20 memories to 10 cues describing emotions and 10 describing objects. Participants pressed the space bar, recording their retrieval time (RT, in ms), once the memory had been brought to mind. Then, they were asked to introspect on the process of retrieval; did the memory just pop into mind (direct retrieved), was it effortful to retrieve the memory (generative retrieval), or were they unable to tell (don't know). Additional information was collected, including the perspective with which the participant viewed their memory, either through their own eyes (field), as if they were watching themselves (observer), or they could respond don't know. The study aimed to investigate the participants' ability to introspect, whether their choice of retrieval corresponded with the time it took for the memory to be retrieved. The first six lines of data can be seen above. Note that this data is presented in long format, whereby each row represents one data point from one participant, such that in this data set, each participant will have 20 rows each as they were required to recall 20 memories.
+
+The analysis will investigate whether retrieval time is consistent with participants' introspected retrieval type, such that direct retrieval should be faster than generative retrieval. 
+
+As per most reaction / retrieval time results, the data are highly skewed (`skewness(Df1$Retrieval_Time_RT)`). A way to manage this is to simply take the logarithm of the retrieval time. The new variable is calculated and added, below. The transformation has reduced much of the skewness of the data (`skewness(Df1$logRT)`).
+
+```{r log of RT, echo = F}
+Df1$logRT <- log10(Df1$Retrieval_Type_RT)
+pirateplot(logRT ~ Retrieval_Type, data = Df1)
+```
+*describe elements of pirateplot*
+
+The initial reaction for many researchers may be to run a linear model with a single predictor (more familiarly known as a one-way ANOVA), to assess if there are reliable differences in retrieval time between introspected retrieval strategies, such that
+
+yi = b0 + b1xi + ei *change to equation*
+      
+      fixed    random
+
+where
+
+i = different memories, y = logRT, b0 = intercept, b1 = retrieval type and e = error. For this analysis, yi is the logarithm of retrieval time from memory i and xi is the retrieval strategy used. ei is assumed to be independent and Normally distributed.
+
+```{r ttest RT over Ret Type}
+linearmod <- lm(logRT ~ Retrieval_Type, data = Df1)
+pander(summary(linearmod))
+mcomps <- lsmeans(linearmod, pairwise ~ Retrieval_Type)
+summary(mcomps)
+```
+
+Assessment of the summary of the linear model, and subsequent multiple comparisons suggests that 'don't know' responses take reliably longer than direct retrieval *extract p value here*
+
+However, one of the assumptions of linear modelling is flouted here, as there is non-independence of observations. The probability of any memory being recalled should not affect the probability of any other memory being recalled. Whilst this assumption may hold true *between* subjects, it is violated *within* subjects, in that memories from one individual will be similarly affected by the same idiosyncratic factors. Memories are then said to be nested within an individual, see...
+
+*Diagram to show nesting*
+
+The effects of nested data can be seen in the below plot. Here, the plot shows individual variation for memory retrieval time with some participants having, overall, slower retrieval times and others being much faster.
+
+```{r plot of participants and memories, echo = F}
+pirateplot(logRT ~ Subject, data = Df1, xlab = "Participant", ylab = "logRT")
+```
+
+The danger of failing to account for these nested (or hierarchical) effects are...atomistic fallacy? Ecological fallacy / Robinson effect? 
+
+The linear model therefore needs to be updated to account for the nesting of memories within participant, so the following model is fitted:
+
+yij = b0 + b1xij + uj + eij 
+      
+      fixed         random
+
+The equation remains similar to the linear model above, however now includes the subscript j, which, for yij, now represents the logarithm of retrieval time for memory i within participant j, and uj corresponds to the residual retrieval time for each participant. The assumptions of eij remain the same. In this equation, the random part of the model is extended - the model is able to account for some additional proportion of eij, this is uj: the residual retrieval time from each participant. uj is therefore capturing the idiosyncratic factors of memory retrieval, noted above. In essence, the error term is partitioned, it now includes eij, error that is known but not understood, and uj, error that is known and understood - it is attributable to the participant idiosyncrasies. 
+
+The model can be alternatively visualised as follows:
+
+yij = (b0 + uj) + b1xij + eij
+
+Here, the effect of the addition of uj can be seen. The intercept (b0) will now vary for participant, based on their residual retrieval time (uj). As such, this model, is often called a random intercepts model, exactly because intercepts are now allowed to vary by uj, in this case, by each participant's residual retrieval time. The figure below shows the random intercepts per participant for log retrieval time of generative memories.
+
+```{r random intercepts, echo = F}
+r.intercept <- lmer(logRT ~ Retrieval_Type + (1|Subject), data = Df1)
+sjp.lmer(r.intercept, type = "ri.slope")
+```
+*check this plot*
+
+Although there are multiple packages available in R for modelling mixed effects, this paper will focus on the use of lme4 (REF). The random intercepts model, above, will be entered as such:
+
+```{r random intercepts model lme4}
+r.intercept <- lmer(logRT ~ Retrieval_Type + (1|Subject), data = Df1)
+```
+
+```{r summary of model}
+summary(r.intercept)
+```
+
+
+Note the only difference between this random intercept model and the linear model above, is the inclusion of the term (1|Subject). This term denotes that an intercepts (1) will be calculated for each Participant.
+
+
+* Interpret model inc fixed and random effects
+* model comparison with likelihood ratio test
+* add random intercept of words presented
+* add another predictor? Cue Type?
+* random slopes?
+* example write up?
 
 
 ## Case Study 2: Analysis of Ordinal Data
@@ -51,5 +150,5 @@ some text here
 * Finding hidden groups with latent profile / class analysis 
 * Dirichlet process mixture models
 
-## Case Study 5: longitudinal analysis **or** power and effect size?
+## Case Study 5: longditudinal analysis **or** power and effect size?
 
