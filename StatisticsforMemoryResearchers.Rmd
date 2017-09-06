@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Abstract
 
-Experimental studies investigating memory are diverse, and as a result so too are their resulting data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selecting an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools limits the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
+Experimental studies investigating memory are diverse, and as a result so too are their data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selecting an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools restricts the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
 
 
 # Introduction
@@ -43,7 +43,7 @@ pander(head(Df1))
 ```
 *change subject to ptp*
 
-In an experiment (reported in Justice & Conway, ????), a total of 36 participants were asked to recall 20 memories to 10 cues describing emotions and 10 describing objects. Participants pressed the space bar, recording their retrieval time (RT, in ms), once the memory had been brought to mind. Then, they were asked to introspect on the process of retrieval; did the memory just pop into mind (direct retrieved), was it effortful to retrieve the memory (generative retrieval), or were they unable to tell (don't know). Additional information was collected, including the perspective with which the participant viewed their memory, either through their own eyes (field), as if they were watching themselves (observer), or they could respond don't know. The study aimed to investigate the participants' ability to introspect, whether their choice of retrieval corresponded with the time it took for the memory to be retrieved. The first six lines of data can be seen above. Note that this data is presented in long format, whereby each row represents one data point from one participant, such that in this data set, each participant will have 20 rows each as they were required to recall 20 memories.
+In an experiment (reported in Conway, Justice & Sauer, forthcoming), a total of 36 participants were asked to recall 20 memories to 10 cues describing emotions and 10 describing objects. Participants pressed the space bar, recording their retrieval time (RT, in ms), once the memory had been brought to mind. Then, they were asked to introspect on the process of retrieval; did the memory just pop into mind (direct retrieved), was it effortful to retrieve the memory (generative retrieval), or were they unable to tell (don't know). Additional information was collected, including the perspective with which the participant viewed their memory, either through their own eyes (field), as if they were watching themselves (observer), or they could respond don't know. The study aimed to investigate the participants' ability to introspect, whether their choice of retrieval corresponded with the time it took for the memory to be retrieved. The first six lines of data can be seen above. Note that this data is presented in long format, whereby each row represents one data point from one participant, such that in this data set, each participant will have 20 rows each as they were required to recall 20 memories.
 
 The analysis will investigate whether retrieval time is consistent with participants' introspected retrieval type, such that direct retrieval should be faster than generative retrieval. 
 
@@ -63,7 +63,7 @@ yi = b0 + b1xi + ei *change to equation*
 
 where
 
-i = different memories, y = logRT, b0 = intercept, b1 = retrieval type and e = error. For this analysis, yi is the logarithm of retrieval time from memory i and xi is the retrieval strategy used. ei is assumed to be independent and Normally distributed.
+i = different memories, y = logRT, b0 = intercept, b1 = slope and e = error. For this analysis, yi is the logarithm of retrieval time from memory i and xi is the retrieval strategy used for each memory. ei is assumed to be independent and Normally distributed.
 
 ```{r ttest RT over Ret Type}
 linearmod <- lm(logRT ~ Retrieval_Type, data = Df1)
@@ -117,7 +117,7 @@ summary(r.intercept)
 ```
 
 
-Note the only difference between this random intercept model and the linear model above, is the inclusion of the term (1|Subject). This term denotes that an intercepts (1) will be calculated for each Participant.
+Note the only difference between this random intercept model and the linear model above, is the inclusion of the term (1|Subject). This term denotes that an intercept (1) will be calculated for each Subject
 
 
 * Interpret model inc fixed and random effects
