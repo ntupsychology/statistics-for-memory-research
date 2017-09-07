@@ -36,7 +36,7 @@ Linear mixed effects models (also known as multilevel models, mixed models, hier
 ```{r Case Study 1 Admin Code, message=FALSE, warning=FALSE, include=FALSE}
 
 
-Df <- read.csv("C:/Users/PSY3JUSTIL/GitHub/statistics-for-memory-research/CaseStudy1&2.csv")
+Df <- read.csv("data/CaseStudy1_2.csv")
 Df1 <- dplyr::select(Df, Subject, Retrieval_Type, Retrieval_Type_RT, Word_Presented, Cue_Type)
 Df1$Retrieval_Type <- factor(Df1$Retrieval_Type, levels = c("Direct", "Generative", "DK"))
 Df1$Subject <- factor(Df1$Subject)
