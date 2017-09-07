@@ -60,14 +60,18 @@ pirateplot(logRT ~ Retrieval_Type, data = Df1)
 *describe elements of pirateplot*
 
 The initial reaction for many researchers may be to run a linear model with a single predictor (more familiarly known as a one-way ANOVA), to assess if there are reliable differences in retrieval time between introspected retrieval strategies, such that
+$$
+y_i = b_0 + b_1x_i + \epsilon_i  
+$$      
+where $i$ indexes different memories, each $y_i$ is the natural logarithm of the retrieval time, $b_0$ and $b_1$ are the intercept and slope, and each $e_i$ is an error term that is assumed to be Normally distributed with zero mean and standard deviation $\sigma$.
 
-yi = b0 + b1xi + ei *change to equation*
-      
-      fixed    random
+### Inline R code example
+```{r}
+foo <- rnorm(100)
+```
+The mean is `r round(mean(foo), 3)` and the variance is `r round(var(foo), 3)`.
 
-where
 
-i = different memories, y = logRT, b0 = intercept, b1 = slope and e = error. For this analysis, yi is the logarithm of retrieval time from memory i and xi is the retrieval strategy used for each memory. ei is assumed to be independent and Normally distributed.
 
 ```{r ttest RT over Ret Type}
 linearmod <- lm(logRT ~ Retrieval_Type, data = Df1)
@@ -92,16 +96,18 @@ The danger of failing to account for these nested (or hierarchical) effects are.
 
 The linear model therefore needs to be updated to account for the nesting of memories within participant, so the following model is fitted:
 
-yij = b0 + b1xij + uj + eij 
-      
+$$
+y_{ij} = b_0 + b_1 x_{ij} + u_j + \epsilon_{ij} 
+$$    
       fixed         random
 
 The equation remains similar to the linear model above, however now includes the subscript j, which, for yij, now represents the logarithm of retrieval time for memory i within participant j, and uj corresponds to the residual retrieval time for each participant. The assumptions of eij remain the same. In this equation, the random part of the model is extended - the model is able to account for some additional proportion of eij, this is uj: the residual retrieval time from each participant. uj is therefore capturing the idiosyncratic factors of memory retrieval, noted above. In essence, the error term is partitioned, it now includes eij, error that is known but not understood, and uj, error that is known and understood - it is attributable to the participant idiosyncrasies. 
 
 The model can be alternatively visualised as follows:
 
-yij = (b0 + uj) + b1xij + eij
-
+$$
+y_{ij} = (b_0 + u_j) + b_1 x_{ij} + \epsilon_{ij}
+$$
 Here, the effect of the addition of uj can be seen. The intercept (b0) will now vary for participant, based on their residual retrieval time (uj). As such, this model, is often called a random intercepts model, exactly because intercepts are now allowed to vary by uj, in this case, by each participant's residual retrieval time. The figure below shows the random intercepts per participant for log retrieval time of generative memories.
 
 ```{r random intercepts, echo = F}
