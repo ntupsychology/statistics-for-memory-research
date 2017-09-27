@@ -16,7 +16,7 @@ library(yarrr)
 library(lsmeans)
 library(lme4)
 library(sjPlot)
-library(e1071)
+library(psych)
 ```
 
 # Abstract
@@ -51,36 +51,28 @@ In an experiment (reported in Conway, Justice & Sauer, forthcoming), a total of 
 
 The analysis will investigate whether retrieval time is consistent with participants' introspected retrieval type, such that direct retrieval should be faster than generative retrieval. 
 
-As per most reaction / retrieval time results, the data are highly skewed (`skewness(Df1$Retrieval_Time_RT)`). A way to manage this is to simply take the logarithm of the retrieval time. The new variable is calculated and added, below. The transformation has reduced much of the skewness of the data (`skewness(Df1$logRT)`).
-
 ```{r log of RT, echo = F}
 Df1$logRT <- log10(Df1$Retrieval_Type_RT)
-pirateplot(logRT ~ Retrieval_Type, data = Df1)
 ```
-*describe elements of pirateplot*
+
+As per most reaction / retrieval time results, the data are highly skewed (skew = `r skew(Df1$Retrieval_Type_RT)`). A way to manage this is to simply take the logarithm of the retrieval time. The new variable is calculated and added, below. The transformation has reduced much of the skewness of the data (skew = `r skew(Df1$logRT)`).
 
 The initial reaction for many researchers may be to run a linear model with a single predictor (more familiarly known as a one-way ANOVA), to assess if there are reliable differences in retrieval time between introspected retrieval strategies, such that
+
 $$
 y_i = b_0 + b_1x_i + \epsilon_i  
-$$      
-where $i$ indexes different memories, each $y_i$ is the natural logarithm of the retrieval time, $b_0$ and $b_1$ are the intercept and slope, and each $e_i$ is an error term that is assumed to be Normally distributed with zero mean and standard deviation $\sigma$.
+$$  
 
-### Inline R code example
-```{r}
-foo <- rnorm(100)
-```
-The mean is `r round(mean(foo), 3)` and the variance is `r round(var(foo), 3)`.
-
+where $i$ indexes different memories, $y_i$ is the natural logarithm of the retrieval time for each memory, $b_0$ and $b_1$ are the intercept and slope respectively, and $\epsilon_i$ is an error term that is assumed to be normally distributed with a mean of 0 and standard deviation $\sigma$ of 1.
 
 
 ```{r ttest RT over Ret Type}
 linearmod <- lm(logRT ~ Retrieval_Type, data = Df1)
-pander(summary(linearmod))
 mcomps <- lsmeans(linearmod, pairwise ~ Retrieval_Type)
-summary(mcomps)
+mcomps$contrasts
 ```
 
-Assessment of the summary of the linear model, and subsequent multiple comparisons suggests that 'don't know' responses take reliably longer than direct retrieval *extract p value here*
+Assessment of the summary of the linear model, and subsequent multiple comparisons suggests that 'don't know' responses take reliably longer than direct retrieval.
 
 However, one of the assumptions of linear modelling is flouted here, as there is non-independence of observations. The probability of any memory being recalled should not affect the probability of any other memory being recalled. Whilst this assumption may hold true *between* subjects, it is violated *within* subjects, in that memories from one individual will be similarly affected by the same idiosyncratic factors. Memories are then said to be nested within an individual, see...
 
@@ -99,22 +91,20 @@ The linear model therefore needs to be updated to account for the nesting of mem
 $$
 y_{ij} = b_0 + b_1 x_{ij} + u_j + \epsilon_{ij} 
 $$    
-      fixed         random
-
-The equation remains similar to the linear model above, however now includes the subscript j, which, for yij, now represents the logarithm of retrieval time for memory i within participant j, and uj corresponds to the residual retrieval time for each participant. The assumptions of eij remain the same. In this equation, the random part of the model is extended - the model is able to account for some additional proportion of eij, this is uj: the residual retrieval time from each participant. uj is therefore capturing the idiosyncratic factors of memory retrieval, noted above. In essence, the error term is partitioned, it now includes eij, error that is known but not understood, and uj, error that is known and understood - it is attributable to the participant idiosyncrasies. 
+     
+The equation remains similar to the linear model above, however now includes the subscript $j$, which, for $y_{ij}$, now represents the logarithm of retrieval time for memory $i$ within participant $j$, and $u_j$ corresponds to the residual retrieval time for each participant. The assumptions of $\epsilon_{ij}$ remain the same. In this equation, the random part of the model is extended - the model is able to account for some additional proportion of $\epsilon_{ij}$, this is $u_j$: the residual retrieval time from each participant. $u_j$ is therefore capturing the idiosyncratic factors of memory retrieval, noted above. In essence, the error term is partitioned, it now includes $\epsilon_{ij}$, error that is known but not understood, and $u_j$, error that is known and understood - it is attributable to the participant idiosyncrasies. 
 
 The model can be alternatively visualised as follows:
 
 $$
 y_{ij} = (b_0 + u_j) + b_1 x_{ij} + \epsilon_{ij}
 $$
-Here, the effect of the addition of uj can be seen. The intercept (b0) will now vary for participant, based on their residual retrieval time (uj). As such, this model, is often called a random intercepts model, exactly because intercepts are now allowed to vary by uj, in this case, by each participant's residual retrieval time. The figure below shows the random intercepts per participant for log retrieval time of generative memories.
+Here, the effect of the addition of uj can be seen. The intercept ($b_0$) will now vary for participant, based on their residual retrieval time ($u_j$). As such, this model, is often called a random intercepts model, exactly because intercepts are now allowed to vary by $u_j$, in this case, by each participant's residual retrieval time. 
 
-```{r random intercepts, echo = F}
+```{r random intercepts, eval=FALSE, include=FALSE}
 r.intercept <- lmer(logRT ~ Retrieval_Type + (1|Subject), data = Df1)
 sjp.lmer(r.intercept, type = "ri.slope")
 ```
-*check this plot*
 
 Although there are multiple packages available in R for modelling mixed effects, this paper will focus on the use of lme4 (REF). The random intercepts model, above, will be entered as such:
 
