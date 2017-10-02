@@ -1,12 +1,28 @@
 ---
 title: "Statistics for Memory Research"
-author: "Lucy V. Justice and Mark Andrews"
-date: "9 August 2017"
-output: pdf_document
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+author:
+  - name: Lucy V. Justice
+    email: lucy.justice@ntu.ac.uk
+    affiliation: ntu
+    footnote: Corresponding Author
+  - name: Mark Andrews
+    email: mark.andrews@ntu.ac.uk
+    affiliation: ntu
+address:
+  - code: ntu
+    address: Department of Psychology, Nottingham Trent University
+abstract: |
+  Experimental studies investigating memory are diverse, and as a result so too are their data. Due to this diversity, selecting the appropriate method for statistical analyses can be challenging, and implementing this chosen method may more challenging still. However, selecting an unsuitable statistical tool may result in misleading analysis and unsound conclusions. Furthermore, limiting analyses to conventional and well-known tools restricts the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
+bibliography: refs.bib
+csl: apa.csl
+output: 
+  rticles::elsevier_article:
+    keep_tex: no
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r load_packages, message=FALSE, warning=FALSE}
@@ -17,66 +33,65 @@ library(lsmeans)
 library(lme4)
 library(sjPlot)
 library(psych)
+library(xtable)
 ```
 
-# Abstract
-
-Experimental studies investigating memory are diverse, and as a result so too are their data. Due to this diversity, the selection of appropriate statistical analyses can be challenging with implementing the chosen tool often being more challenging still. However, selecting an unsuitable statistical tool may result in poor quality estimates and, in turn produce unsound conclusions. Further limiting analyses to conventional and well-known tools restricts the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
-
-
-# Introduction
-
-some text here
+<!-- # Introduction -->
 
 # Case Studies
 
 ## Case Study 1: Linear Mixed Effects Models
-Linear mixed effects models (also known as multilevel models, mixed models, hierarchical models) are used as standard across many areas of psychology (REF), and although they are increasingly appearing throughout memory research, they remain an underused tool. This case study will demonstrate when linear mixed effects models can be utilised, how they are implemented and how their results can be visualised and written.
+
+Linear mixed effects models (also known as multilevel linear models, hierarchical linear models, mixed models, etc.) are now widely used in some areas as of psychology [see, e.g., @barr2013random], and although they are increasingly appearing throughout memory research, they still remain an underused tool. This case study will demonstrate when linear mixed effects models can be utilised, how they are implemented and how their results can be visualised and written.
 
 ```{r Case Study 1 Admin Code, message=FALSE, warning=FALSE, include=FALSE}
-
-
 Df <- read.csv("data/CaseStudy1_2.csv")
 Df1 <- dplyr::select(Df, Subject, Retrieval_Type, Retrieval_Type_RT, Word_Presented, Cue_Type)
 Df1$Retrieval_Type <- factor(Df1$Retrieval_Type, levels = c("Direct", "Generative", "DK"))
 Df1$Subject <- factor(Df1$Subject)
+Df1$logRT <- log10(Df1$Retrieval_Type_RT)
 ```
+
+<!-- *change subject to ptp* -->
+
+In an experiment (reported in @conway2017), a total of 36 participants were asked to recall 20 memories to 10 cues describing emotions and 10 describing objects. Participants pressed the space bar, recording their retrieval time (RT, in ms), once the memory had been brought to mind. Then, they were asked to introspect on the process of retrieval; did the memory just pop into mind (direct retrieved), was it effortful to retrieve the memory (generative retrieval), or were they unable to tell (don't know). Additional information was collected, including the perspective with which the participant viewed their memory, either through their own eyes (field), as if they were watching themselves (observer), or they could respond don't know. The study aimed to investigate the participants' ability to introspect, whether their choice of retrieval corresponded with the time it took for the memory to be retrieved. 
 
 ```{r Display Data, echo=F}
 pander(head(Df1))
 ```
-*change subject to ptp*
-
-In an experiment (reported in Conway, Justice & Sauer, forthcoming), a total of 36 participants were asked to recall 20 memories to 10 cues describing emotions and 10 describing objects. Participants pressed the space bar, recording their retrieval time (RT, in ms), once the memory had been brought to mind. Then, they were asked to introspect on the process of retrieval; did the memory just pop into mind (direct retrieved), was it effortful to retrieve the memory (generative retrieval), or were they unable to tell (don't know). Additional information was collected, including the perspective with which the participant viewed their memory, either through their own eyes (field), as if they were watching themselves (observer), or they could respond don't know. The study aimed to investigate the participants' ability to introspect, whether their choice of retrieval corresponded with the time it took for the memory to be retrieved. The first six lines of data can be seen above. Note that this data is presented in long format, whereby each row represents one data point from one participant, such that in this data set, each participant will have 20 rows each as they were required to recall 20 memories.
+The first six lines of data can be seen above. Note that this data is presented in long format, whereby each row represents one data point from one participant, such that in this data set, each participant will have 20 rows each as they were required to recall 20 memories.
 
 The analysis will investigate whether retrieval time is consistent with participants' introspected retrieval type, such that direct retrieval should be faster than generative retrieval. 
 
-```{r log of RT, echo = F}
-Df1$logRT <- log10(Df1$Retrieval_Type_RT)
-```
+As per most reaction / retrieval time results, the data are highly skewed (in this case, the skew is `r round(skew(Df1$Retrieval_Type_RT), 3)`). A way to overcome this is to simply take the logarithm of the retrieval time. The new variable is calculated and added, below. The transformation has reduced much of the skewness of the data (the skew is now `r round(skew(Df1$logRT), 3)`).
 
-As per most reaction / retrieval time results, the data are highly skewed (skew = `r skew(Df1$Retrieval_Type_RT)`). A way to manage this is to simply take the logarithm of the retrieval time. The new variable is calculated and added, below. The transformation has reduced much of the skewness of the data (skew = `r skew(Df1$logRT)`).
-
-The initial reaction for many researchers may be to run a linear model with a single predictor (more familiarly known as a one-way ANOVA), to assess if there are reliable differences in retrieval time between introspected retrieval strategies, such that
-
+The initial reaction for many researchers may be to run a linear model with a single predictor (more familiarly known as a one-way ANOVA), to assess if there are reliable differences in retrieval time between introspected retrieval strategies. In other words, they assume the following probabilistic generative model of the data:
 $$
-y_i = b_0 + b_1x_i + \epsilon_i  
+y_i = b_0 + b_1x_i + \epsilon_i, \quad \text{for $i \in 1 \ldots n$}.
 $$  
+Here, $i$ indexes each observation (i.e., each row in the data-set), $y_i$ is the natural logarithm of the retrieval time for each memory, $x_i$ is the retrieval type, $b_0$ and $b_1$ are the intercept and slope respectively, and $\epsilon_i$ is an error term that is assumed to be normally distributed with a mean of 0 and unknown standard deviation $\sigma$.
 
-where $i$ indexes different memories, $y_i$ is the natural logarithm of the retrieval time for each memory, $b_0$ and $b_1$ are the intercept and slope respectively, and $\epsilon_i$ is an error term that is assumed to be normally distributed with a mean of 0 and standard deviation $\sigma$ of 1.
-
-
-```{r ttest RT over Ret Type}
+```{r ttest RT over Ret Type, results='asis', include=TRUE}
 linearmod <- lm(logRT ~ Retrieval_Type, data = Df1)
 mcomps <- lsmeans(linearmod, pairwise ~ Retrieval_Type)
-mcomps$contrasts
+
+options(xtable.comment=FALSE)
+options(xtable.booktabs=FALSE)
+cat('\\begin{center}')
+print(xtable(mcomps$contrasts), floating=FALSE, center=TRUE)
+cat('\\end{center}')
 ```
 
-Assessment of the summary of the linear model, and subsequent multiple comparisons suggests that 'don't know' responses take reliably longer than direct retrieval.
+Assessment of the summary of the linear model, and subsequent multiple comparisons suggests that "don't know" responses take reliably longer than direct retrieval.
 
+<!-- The key assumption here is exchangeability of random variables. The observations are exchangeable *within* subjects. --> 
+<!-- If we are going to properly and carefully explain multilevel structures, and it is not hard to do, it will take some space and time. -->
 However, one of the assumptions of linear modelling is flouted here, as there is non-independence of observations. The probability of any memory being recalled should not affect the probability of any other memory being recalled. Whilst this assumption may hold true *between* subjects, it is violated *within* subjects, in that memories from one individual will be similarly affected by the same idiosyncratic factors. Memories are then said to be nested within an individual, see...
 
+<!--
 *Diagram to show nesting*
+TikZ is our friend. We love tikZ for diagrams.
+-->
 
 The effects of nested data can be seen in the below plot. Here, the plot shows individual variation for memory retrieval time with some participants having, overall, slower retrieval times and others being much faster.
 
@@ -152,3 +167,5 @@ Note the only difference between this random intercept model and the linear mode
 
 ## Case Study 5: longditudinal analysis **or** power and effect size?
 
+
+# References
