@@ -165,7 +165,7 @@ Note the only difference between this random intercept model and the linear mode
 * Finding hidden groups with latent profile / class analysis 
 * Dirichlet process mixture models
 
-## Case Study 5: longditudinal analysis **or** power and effect size?
+## Case Study 5: Analysing recognition memory accuracy and reaction times using Hierarchical Drfit Diffusion Model
 
 
 # References
