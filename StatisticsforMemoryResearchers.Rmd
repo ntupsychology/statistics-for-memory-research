@@ -14,8 +14,8 @@ address:
     address: Department of Psychology, Nottingham Trent University
 abstract: |
   Experimental studies investigating memory are diverse, and as a result so too are their data. Due to this diversity, selecting the appropriate method for statistical analyses can be challenging, and implementing this chosen method may more challenging still. However, selecting an unsuitable statistical tool may result in misleading analysis and unsound conclusions. Furthermore, limiting analyses to conventional and well-known tools restricts the questions that can be asked about the data, and as such, the conclusions that can be drawn. In this paper, five case studies of experimental memory research are presented. Along with fully annotated code, using packages in the open source software R, some of the less common statistical tools used in memory research are demonstrated and explained. This paper therefore aims to 1) provide guidance for statistical analysis for a number of common phenomena seen in memory research, 2) increase the statistical repertoire of memory researchers to in turn, 3) help improve the quality and breadth of conclusions drawn from memory research.
-bibliography: refs.bib
-csl: apa.csl
+bibliography: include/refs.bib
+csl: include/apa.csl
 output: 
   rticles::elsevier_article:
     keep_tex: no
